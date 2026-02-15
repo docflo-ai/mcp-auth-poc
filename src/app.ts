@@ -2,6 +2,7 @@ import express, { Request, RequestHandler, Response } from "express";
 import { mcpMetadataRouter, requireAuth } from "./auth.js";
 
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { server } from "./server.js";
 
 /**
@@ -11,6 +12,7 @@ export function startApp(): void {
   const transports: { [sessionId: string]: SSEServerTransport } = {};
 
   const app = express();
+  app.use(express.json());
 
   app.use(mcpMetadataRouter());
 
@@ -46,6 +48,15 @@ export function startApp(): void {
       await server.connect(transport);
     },
   );
+  // StreamableHTTP transport — used by Claude.ai custom connector
+  app.post("/mcp", requireAuth(), async (req: Request, res: Response) => {
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // stateless
+    });
+    await server.connect(transport);
+    await transport.handleRequest(req, res, req.body);
+  });
+
   app.post("/messages", requireAuth(), async (req: Request, res: Response) => {
     const sessionId = req.query.sessionId as string;
     const transport = transports[sessionId];
