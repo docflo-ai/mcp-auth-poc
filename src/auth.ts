@@ -27,9 +27,12 @@ export const mcpMetadataRouter = (): RequestHandler => {
       authorization_endpoint: new URL("/authorize", `https://${AUTH0_DOMAIN}`)
         .href,
       token_endpoint: new URL("/oauth/token", `https://${AUTH0_DOMAIN}`).href,
+      registration_endpoint: new URL(
+        "/oidc/register",
+        `https://${AUTH0_DOMAIN}`,
+      ).href,
       response_types_supported: ["code"],
-      registration_endpoint: new URL("/register", `https://${AUTH0_DOMAIN}`)
-        .href,
+
       code_challenge_methods_supported: ["S256"],
       token_endpoint_auth_methods_supported: ["client_secret_post"],
       scopes_supported: ["openid", "profile", "email", "read:userinfo"],
