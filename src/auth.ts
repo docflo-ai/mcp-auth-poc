@@ -73,7 +73,6 @@ export const mcpMetadataRouter = (): RequestHandler => {
     }
     params.set("audience", AUTH0_AUDIENCE);
     params.set("scope", "openid profile email");
-    params.set("client_id", "zau8VYau9dnZahoSahTRfl2waaadTVnZ");
     authUrl.search = params.toString();
     console.log("Redirecting to Auth0 authorize endpoint:", authUrl.href);
     res.redirect(authUrl.href);
