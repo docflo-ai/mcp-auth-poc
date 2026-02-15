@@ -1,4 +1,5 @@
 import { getOrganization, getRoles } from "./api1.js";
+import { getMcpAccessToken } from "./config.js";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -12,7 +13,7 @@ export function registerTools(server: McpServer): void {
     "get my roles of my user, related to specific tenant, it will call the identity provider of docflo which is Auth0",
     async () => {
       try {
-        const roles = await getRoles();
+        const roles = await getRoles(getMcpAccessToken());
         return {
           content: [
             {
@@ -41,7 +42,7 @@ export function registerTools(server: McpServer): void {
     "get details about my docflo tenant that I am connected to",
     async () => {
       try {
-        const org = await getOrganization();
+        const org = await getOrganization(getMcpAccessToken());
         return {
           content: [
             {
