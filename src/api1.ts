@@ -1,5 +1,4 @@
 import {
-  Balance,
   MYBANK_API_1_AUDIENCE,
   MYBANK_API_1_CLIENT_ID,
   MYBANK_API_1_CLIENT_SECRET,
@@ -40,9 +39,9 @@ export async function getAccessTokenAPI1(): Promise<MybankApiAccessToken> {
 }
 
 /**
- * Fetch the account balance from MyBank API 1, refreshing the token when needed.
+ * Ensure a valid API 1 access token is available, refreshing if needed.
  */
-export async function getRoles(account_number: string): Promise<Balance> {
+async function ensureAccessToken(): Promise<void> {
   const current = getMybankApi1AccessToken();
   const isValid = await validateAPI1Token(current);
 
@@ -56,6 +55,13 @@ export async function getRoles(account_number: string): Promise<Balance> {
   } else {
     console.log("Existing Access Token from Auth0 for MyBank-API-1:", current);
   }
+}
+
+/**
+ * Fetch the available roles in the Docflo platform.
+ */
+export async function getRoles(): Promise<unknown> {
+  await ensureAccessToken();
 
   const res = await fetch(MYBANK_API_1_URL + "/user/roles", {
     method: "GET",
@@ -70,5 +76,27 @@ export async function getRoles(account_number: string): Promise<Balance> {
     throw new Error(`API request failed: ${res.status} ${error}`);
   }
 
-  return res.json() as Promise<Balance>;
+  return res.json();
+}
+
+/**
+ * Fetch organization (tenant) details from Docflo.
+ */
+export async function getOrganization(): Promise<unknown> {
+  await ensureAccessToken();
+
+  const res = await fetch(MYBANK_API_1_URL + "/organization", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + getMybankApi1AccessToken(),
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`API request failed: ${res.status} ${error}`);
+  }
+
+  return res.json();
 }

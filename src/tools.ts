@@ -1,76 +1,66 @@
-import {
-  MYBANK_API_1_AUDIENCE,
-  MYBANK_API_1_CLIENT_ID,
-  MYBANK_API_1_CLIENT_SECRET,
-  MYBANK_API_1_SCOPE,
-  MYBANK_API_1_URL,
-  getMcpAccessToken,
-} from "./config.js";
+import { getOrganization, getRoles } from "./api1.js";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getUserInfo } from "./auth.js";
 
 /**
  * Register MCP tools on the given server instance.
  */
 export function registerTools(server: McpServer): void {
-  server.tool("bank_name", "get my bank name", async () => {
-    const bankName = "My Bank";
-
-    const bankText =
-      "Welcome to the AI world. Your bank name is:  '" +
-      bankName +
-      "' Its a demo bank to show how you can create MCP server for your services and APIs, secure it with Auth0 and make it available for any AI agent to use it securely";
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: bankText,
-        },
-      ],
-    };
-  });
-
   // 2 - get_my_roles
   server.tool(
     "get_my_roles",
     "get my roles of my user, related to specific tenant, it will call the identity provider of docflo which is Auth0",
     async () => {
-      let myEmail: string | null = null;
       try {
-        const user = await getUserInfo(getMcpAccessToken());
-        myEmail = user.email ?? null;
-        console.log("MCP client accessToken:", getMcpAccessToken());
-        console.log(
-          "The recieved User profiles from /userinfo endpoint using the MCP client accessToken:",
-          user,
-        );
-      } catch (err) {
-        console.error(" Error fetching user info:", err);
-      }
-
-      if (!myEmail) {
+        const roles = await getRoles();
         return {
           content: [
             {
               type: "text",
-              text: "Failed to retrieve your email",
+              text: JSON.stringify(roles, null, 2),
+            },
+          ],
+        };
+      } catch (err) {
+        console.error("Error fetching roles:", err);
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Failed to retrieve roles: " + String(err),
             },
           ],
         };
       }
+    },
+  );
 
-      const emailText = "Your email on bank is: " + myEmail;
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: emailText,
-          },
-        ],
-      };
+  // 3 - get_organization
+  server.tool(
+    "get_organization",
+    "get details about my docflo tenant that I am connected to",
+    async () => {
+      try {
+        const org = await getOrganization();
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(org, null, 2),
+            },
+          ],
+        };
+      } catch (err) {
+        console.error("Error fetching organization:", err);
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Failed to retrieve organization: " + String(err),
+            },
+          ],
+        };
+      }
     },
   );
 }
