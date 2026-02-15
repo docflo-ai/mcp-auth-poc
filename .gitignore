@@ -10,7 +10,7 @@ node_modules
 */node_modules
 *.env
 /test-results
-
+/build
 # IDEs and editors
 /.idea
 .project
