@@ -60,7 +60,6 @@ export const mcpMetadataRouter = (): RequestHandler => {
 
   // Proxy /authorize to Auth0 (preserve query params)
   router.get("/authorize", (req: Request, res: Response) => {
-    console.log("Received /authorize request with query:", req.query); // helpful debug
     const authUrl = new URL(`https://${AUTH0_DOMAIN}/authorize`);
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(req.query)) {
@@ -75,15 +74,14 @@ export const mcpMetadataRouter = (): RequestHandler => {
     params.set("audience", AUTH0_AUDIENCE);
     params.set("scope", "openid profile email");
     params.set("client_id", "zau8VYau9dnZahoSahTRfl2waaadTVnZ");
-
     authUrl.search = params.toString();
-    console.log("Redirecting to Auth0:", authUrl.href); // helpful debug
-
+    console.log("Redirecting to Auth0 authorize endpoint:", authUrl.href);
     res.redirect(authUrl.href);
   });
 
   // Proxy token requests to Auth0 (forward raw body and content-type)
   router.post("/oauth/token", async (req: Request, res: Response) => {
+    console.log("Received token request, proxying to Auth0");
     try {
       const raw = await readRawBody(req);
       const contentType =
@@ -104,6 +102,10 @@ export const mcpMetadataRouter = (): RequestHandler => {
           tokenRes.headers.get("content-type") || "application/json",
         )
         .send(body);
+      console.log(
+        "Proxied /oauth/token request to Auth0, response status:",
+        tokenRes.status,
+      );
     } catch (err) {
       console.error("Error proxying /oauth/token:", err);
       res.status(502).json({
@@ -116,6 +118,7 @@ export const mcpMetadataRouter = (): RequestHandler => {
   // Proxy client registration requests to Auth0 dynamic registration endpoint
   router.post("/register", async (req: Request, res: Response) => {
     try {
+      console.log("Received client registration request, proxying to Auth0");
       const raw = await readRawBody(req);
       const contentType =
         (req.headers["content-type"] as string) || "application/json";
@@ -134,6 +137,10 @@ export const mcpMetadataRouter = (): RequestHandler => {
           regRes.headers.get("content-type") || "application/json",
         )
         .send(body);
+      console.log(
+        "Proxied /register request to Auth0, response status:",
+        regRes.status,
+      );
     } catch (err) {
       console.error("Error proxying /register:", err);
       res.status(502).json({
@@ -150,6 +157,10 @@ export const mcpMetadataRouter = (): RequestHandler => {
  * Express middleware that validates incoming Bearer tokens for MCP clients.
  */
 export const requireAuth = (): RequestHandler => {
+  console.log(
+    "Initializing requireAuth middleware with Auth0 domain:",
+    AUTH0_DOMAIN,
+  );
   return async (req, res, next) => {
     try {
       const header = req.headers.authorization;

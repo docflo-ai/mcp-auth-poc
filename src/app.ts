@@ -15,6 +15,7 @@ export function startApp(): void {
   app.use(mcpMetadataRouter());
 
   app.get("/sse", requireAuth(), async (_: Request, res: Response) => {
+    console.log("Received request to establish SSE connection");
     const transport = new SSEServerTransport("/messages", res);
     transports[transport.sessionId] = transport;
     res.on("close", () => {
@@ -22,7 +23,29 @@ export function startApp(): void {
     });
     await server.connect(transport);
   });
-
+  app.post("/sse", requireAuth(), async (_: Request, res: Response) => {
+    console.log(
+      "Received POST to /sse, but this endpoint is not used for message handling. Please connect to /sse with a GET request to establish the SSE connection, and send messages to /messages with the sessionId query parameter.",
+    );
+    const transport = new SSEServerTransport("/messages", res);
+    transports[transport.sessionId] = transport;
+    res.on("close", () => {
+      delete transports[transport.sessionId];
+    });
+    await server.connect(transport);
+  });
+  app.get(
+    "/sse/initialize",
+    requireAuth(),
+    async (_: Request, res: Response) => {
+      const transport = new SSEServerTransport("/messages", res);
+      transports[transport.sessionId] = transport;
+      res.on("close", () => {
+        delete transports[transport.sessionId];
+      });
+      await server.connect(transport);
+    },
+  );
   app.post("/messages", requireAuth(), async (req: Request, res: Response) => {
     const sessionId = req.query.sessionId as string;
     const transport = transports[sessionId];
