@@ -184,7 +184,7 @@ export const requireAuth = (): RequestHandler => {
         );
       }
 
-      // update shared token state
+      // update shared token state (kept for SSE compatibility)
       setMcpAccessToken(token);
 
       const valid = await validateToken(token);
@@ -194,6 +194,10 @@ export const requireAuth = (): RequestHandler => {
         throw new InvalidTokenError("Invalid Token");
       }
       console.log("[AUTH] MCP client token is valid!");
+
+      // Populate req.auth so the MCP SDK propagates authInfo to tool handlers
+      (req as express.Request & { auth?: { token: string } }).auth = { token };
+
       next();
     } catch (error) {
       if (error instanceof InvalidTokenError) {

@@ -11,9 +11,10 @@ export function registerTools(server: McpServer): void {
   server.tool(
     "get_my_roles",
     "get my roles of my user, related to specific tenant, it will call the identity provider of docflo which is Auth0",
-    async () => {
+    async (extra) => {
+      const token = extra?.authInfo?.token ?? getMcpAccessToken();
       try {
-        const roles = await getRoles(getMcpAccessToken());
+        const roles = await getRoles(token);
         return {
           content: [
             {
@@ -40,9 +41,10 @@ export function registerTools(server: McpServer): void {
   server.tool(
     "get_organization",
     "get details about my docflo tenant that I am connected to",
-    async () => {
+    async (extra) => {
+      const token = extra?.authInfo?.token ?? getMcpAccessToken();
       try {
-        const org = await getOrganization(getMcpAccessToken());
+        const org = await getOrganization(token);
         return {
           content: [
             {
