@@ -30,7 +30,7 @@ export function getMybankApi1AccessToken(): string {
 export const AUTH0_DOMAIN: string =
   process.env.AUTH0_DOMAIN ?? "docflo-lab.eu.auth0.com";
 export const AUTH0_AUDIENCE: string =
-  process.env.AUTH0_AUDIENCE ?? "https://docflo-auth-api";
+  process.env.AUTH0_AUDIENCE ?? "https://mcp-auth-poc.onrender.com/";
 
 export const MYBANK_API_1_AUTH0_DOMAIN: string =
   process.env.MYBANK_API_1_AUTH0_DOMAIN ?? "docflo-lab.eu.auth0.com";
