@@ -41,8 +41,6 @@ export function startApp(): void {
       timestamp: Date.now(),
     });
   });
-  app.listen(process.env.PORT || 3000);
-  console.log(
-    "MCP Server is running in Express on port " + (process.env.PORT || 3000),
-  );
+  app.listen(4000);
+  console.log("MCP Server is running in Express on port " + 4000);
 }
