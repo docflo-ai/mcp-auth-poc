@@ -40,7 +40,7 @@ export const mcpMetadataRouter = (): RequestHandler => {
   const router = express.Router();
 
   const MCP_BASE_URL =
-    process.env.MCP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+    process.env.MCP_BASE_URL || `http://localhost:${process.env.PORT || 8081}`;
 
   // Serve OAuth metadata that advertises the MCP host as the issuer
   router.use(
@@ -52,7 +52,7 @@ export const mcpMetadataRouter = (): RequestHandler => {
       registration_endpoint: `${MCP_BASE_URL}/register`,
       response_types_supported: ["code"],
       code_challenge_methods_supported: ["S256"],
-      token_endpoint_auth_methods_supported: ["client_secret_post"],
+      token_endpoint_auth_methods_supported: ["none", "client_secret_post"],
       scopes_supported: ["openid", "profile", "email", "read:userinfo"],
       default_scope: "openid profile email read:userinfo",
     }),
@@ -73,7 +73,9 @@ export const mcpMetadataRouter = (): RequestHandler => {
       }
     }
     params.set("audience", AUTH0_AUDIENCE);
-    params.set("scope", "openid profile email");
+    if (!params.has("scope")) {
+      params.set("scope", "openid profile email");
+    }
     authUrl.search = params.toString();
     console.log("Redirecting to Auth0 authorize endpoint:", authUrl.href);
     res.redirect(authUrl.href);
