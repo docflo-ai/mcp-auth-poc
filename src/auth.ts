@@ -47,9 +47,9 @@ export const mcpMetadataRouter = (): RequestHandler => {
     "/.well-known/oauth-authorization-server",
     metadataHandler({
       issuer: MCP_BASE_URL,
-      authorization_endpoint: new URL("/authorize", MCP_BASE_URL).href,
-      token_endpoint: new URL("/oauth/token", MCP_BASE_URL).href,
-      registration_endpoint: new URL("/register", MCP_BASE_URL).href,
+      authorization_endpoint: `${MCP_BASE_URL}/authorize`,
+      token_endpoint: `${MCP_BASE_URL}/oauth/token`,
+      registration_endpoint: `${MCP_BASE_URL}/register`,
       response_types_supported: ["code"],
       code_challenge_methods_supported: ["S256"],
       token_endpoint_auth_methods_supported: ["client_secret_post"],
@@ -60,6 +60,7 @@ export const mcpMetadataRouter = (): RequestHandler => {
 
   // Proxy /authorize to Auth0 (preserve query params)
   router.get("/authorize", (req: Request, res: Response) => {
+    console.log("Received /authorize request with query:", req.query); // helpful debug
     const authUrl = new URL(`https://${AUTH0_DOMAIN}/authorize`);
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(req.query)) {
@@ -71,7 +72,13 @@ export const mcpMetadataRouter = (): RequestHandler => {
         params.set(key, String(value));
       }
     }
+    params.set("audience", AUTH0_AUDIENCE);
+    params.set("scope", "openid profile email");
+    params.set("client_id", "zau8VYau9dnZahoSahTRfl2waaadTVnZ");
+
     authUrl.search = params.toString();
+    console.log("Redirecting to Auth0:", authUrl.href); // helpful debug
+
     res.redirect(authUrl.href);
   });
 
