@@ -234,6 +234,7 @@ export interface Auth0UserInfo {
 }
 
 export async function getUserInfo(accessToken: string): Promise<Auth0UserInfo> {
+  console.log("Fetching user info from Auth0");
   const res = await fetch(`https://${AUTH0_DOMAIN}/userinfo`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -253,6 +254,7 @@ const MYBANK_API_1_JWKS = createRemoteJWKSet(
 );
 
 export async function validateAPI1Token(token: string): Promise<boolean> {
+  console.log("Validating MyBank API 1 token with Auth0");
   try {
     await jwtVerify(token, MYBANK_API_1_JWKS, {
       audience: MYBANK_API_1_AUDIENCE,
