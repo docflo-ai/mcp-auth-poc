@@ -60,6 +60,7 @@ export const mcpMetadataRouter = (): RequestHandler => {
 
   // Proxy /authorize to Auth0 (preserve query params)
   router.get("/authorize", (req: Request, res: Response) => {
+    console.log("[AUTHORIZE] Incoming query params:", req.query);
     const authUrl = new URL(`https://${AUTH0_DOMAIN}/authorize`);
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(req.query)) {
@@ -80,9 +81,11 @@ export const mcpMetadataRouter = (): RequestHandler => {
 
   // Proxy token requests to Auth0 (forward raw body and content-type)
   router.post("/oauth/token", async (req: Request, res: Response) => {
-    console.log("Received token request, proxying to Auth0");
+    console.log("[TOKEN] Headers:", req.headers);
     try {
       const raw = await readRawBody(req);
+      console.log("[TOKEN] Raw body:", raw.toString());
+
       const contentType =
         (req.headers["content-type"] as string) ||
         "application/x-www-form-urlencoded";
@@ -101,10 +104,8 @@ export const mcpMetadataRouter = (): RequestHandler => {
           tokenRes.headers.get("content-type") || "application/json",
         )
         .send(body);
-      console.log(
-        "Proxied /oauth/token request to Auth0, response status:",
-        tokenRes.status,
-      );
+      console.log("[TOKEN] Auth0 response status:", tokenRes.status);
+      console.log("[TOKEN] Auth0 response body:", body);
     } catch (err) {
       console.error("Error proxying /oauth/token:", err);
       res.status(502).json({
@@ -156,11 +157,10 @@ export const mcpMetadataRouter = (): RequestHandler => {
  * Express middleware that validates incoming Bearer tokens for MCP clients.
  */
 export const requireAuth = (): RequestHandler => {
-  console.log(
-    "Initializing requireAuth middleware with Auth0 domain:",
-    AUTH0_DOMAIN,
-  );
   return async (req, res, next) => {
+    console.log("[AUTH] Incoming request path:", req.path);
+    console.log("[AUTH] Authorization header:", req.headers.authorization);
+
     try {
       const header = req.headers.authorization;
 
@@ -169,6 +169,13 @@ export const requireAuth = (): RequestHandler => {
       }
 
       const [type, token] = header.split(" ");
+      console.log(
+        "[AUTH] Token type:",
+        type,
+        "Token:",
+        token?.slice(0, 10) + "...",
+      );
+
       if (type.toLowerCase() !== "bearer" || !token) {
         throw new InvalidTokenError(
           "Invalid Authorization header format, expected 'Bearer TOKEN'",
@@ -179,12 +186,12 @@ export const requireAuth = (): RequestHandler => {
       setMcpAccessToken(token);
 
       const valid = await validateToken(token);
+      console.log("[AUTH] Token validation result:", valid);
+
       if (!valid) {
         throw new InvalidTokenError("Invalid Token");
       }
-
-      console.log("MCP client token is valid!");
-
+      console.log("[AUTH] MCP client token is valid!");
       next();
     } catch (error) {
       if (error instanceof InvalidTokenError) {
@@ -210,12 +217,14 @@ const JWKS = createRemoteJWKSet(
 
 export async function validateToken(token: string): Promise<boolean> {
   try {
-    await jwtVerify(token, JWKS, {
+    const result = await jwtVerify(token, JWKS, {
       audience: AUTH0_AUDIENCE,
       issuer: `https://${AUTH0_DOMAIN}/`,
     });
+    console.log("[VALIDATE] JWT decoded:", result.payload);
     return true;
   } catch (err) {
+    console.error("[VALIDATE] JWT verification failed:", err);
     return false;
   }
 }
@@ -233,12 +242,13 @@ export interface Auth0UserInfo {
 }
 
 export async function getUserInfo(accessToken: string): Promise<Auth0UserInfo> {
-  console.log("Fetching user info from Auth0");
   const res = await fetch(`https://${AUTH0_DOMAIN}/userinfo`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
+
+  console.log("[USERINFO] Response status:", res.status);
 
   if (!res.ok) {
     const error = await res.text();
