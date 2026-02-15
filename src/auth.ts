@@ -27,7 +27,6 @@ export const mcpMetadataRouter = (): RequestHandler => {
       authorization_endpoint: new URL("/authorize", `https://${AUTH0_DOMAIN}`)
         .href,
       token_endpoint: new URL("/oauth/token", `https://${AUTH0_DOMAIN}`).href,
-      client_id: "zau8VYau9dnZahoSahTRfl2waaadTVnZ", // public client for MCP
       response_types_supported: ["code"],
       registration_endpoint: new URL("/register", `https://${AUTH0_DOMAIN}`)
         .href,
