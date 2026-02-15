@@ -83,34 +83,27 @@ export const mcpMetadataRouter = (): RequestHandler => {
     console.log("Received token request, proxying to Auth0");
     try {
       const raw = await readRawBody(req);
-      const incoming = JSON.parse(raw.toString("utf-8"));
-      const enriched = {
-        ...incoming,
-        grant_types: ["authorization_code"],
-        response_types: ["code"],
-        application_type: "native",
-        token_endpoint_auth_method: "none",
-        oidc_conformant: true,
-      };
-
-      const regRes = await fetch(`https://${AUTH0_DOMAIN}/oauth/token`, {
+      const contentType =
+        (req.headers["content-type"] as string) ||
+        "application/x-www-form-urlencoded";
+      const tokenRes = await fetch(`https://${AUTH0_DOMAIN}/oauth/token`, {
         method: "POST",
         headers: {
-          "content-type": "application/json",
+          "content-type": contentType,
         },
-        body: JSON.stringify(enriched),
+        body: new Uint8Array(raw),
       });
-      const body = await regRes.text();
+      const body = await tokenRes.text();
       res
-        .status(regRes.status)
+        .status(tokenRes.status)
         .set(
           "content-type",
-          regRes.headers.get("content-type") || "application/json",
+          tokenRes.headers.get("content-type") || "application/json",
         )
         .send(body);
       console.log(
         "Proxied /oauth/token request to Auth0, response status:",
-        regRes.status,
+        tokenRes.status,
       );
     } catch (err) {
       console.error("Error proxying /oauth/token:", err);
