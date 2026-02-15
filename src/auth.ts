@@ -219,6 +219,7 @@ const JWKS = createRemoteJWKSet(
 
 export async function validateToken(token: string): Promise<boolean> {
   try {
+    console.log("Validating token with Auth0 JWKS");
     const result = await jwtVerify(token, JWKS, {
       audience: AUTH0_AUDIENCE,
       issuer: `https://${AUTH0_DOMAIN}/`,
