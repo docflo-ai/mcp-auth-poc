@@ -5,7 +5,7 @@ import { registerTools } from "./tools.js";
  * MCP server instance and initialization.
  */
 export const server = new McpServer({
-  name: "MyBank",
+  name: "Docflo",
   version: "1.0.0",
   capabilities: {
     resources: {},

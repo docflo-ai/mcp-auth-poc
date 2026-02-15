@@ -1,26 +1,27 @@
 import {
-  MYBANK_API_1_AUDIENCE,
-  MYBANK_API_1_CLIENT_ID,
-  MYBANK_API_1_CLIENT_SECRET,
-  MYBANK_API_1_SCOPE,
-  MYBANK_API_1_URL,
-  MybankApiAccessToken,
-  getMybankApi1AccessToken,
-  setMybankApi1AccessToken,
+  DOCFLO_API_AUDIENCE,
+  DOCFLO_API_AUTH0_DOMAIN,
+  DOCFLO_API_CLIENT_ID,
+  DOCFLO_API_CLIENT_SECRET,
+  DOCFLO_API_SCOPE,
+  DOCFLO_API_URL,
+  DocfloApiAccessToken,
+  getDocfloApiAccessToken,
+  setDocfloApiAccessToken,
 } from "./config.js";
 
-import { validateAPI1Token } from "./auth.js";
+import { validateDocfloApiToken } from "./auth.js";
 
 /**
- * Request a client_credentials token for MyBank API 1.
+ * Request a client_credentials token for the Docflo API.
  */
-export async function getAccessTokenAPI1(): Promise<MybankApiAccessToken> {
-  const url = `https://${MYBANK_API_1_AUDIENCE.replace(/^https?:\/\//, "")}/oauth/token`;
+export async function getAccessTokenDocfloApi(): Promise<DocfloApiAccessToken> {
+  const url = `https://${DOCFLO_API_AUTH0_DOMAIN}/oauth/token`;
   const body = {
-    client_id: MYBANK_API_1_CLIENT_ID,
-    client_secret: MYBANK_API_1_CLIENT_SECRET,
-    audience: MYBANK_API_1_AUDIENCE,
-    scope: MYBANK_API_1_SCOPE,
+    client_id: DOCFLO_API_CLIENT_ID,
+    client_secret: DOCFLO_API_CLIENT_SECRET,
+    audience: DOCFLO_API_AUDIENCE,
+    scope: DOCFLO_API_SCOPE,
     grant_type: "client_credentials",
   };
 
@@ -35,25 +36,22 @@ export async function getAccessTokenAPI1(): Promise<MybankApiAccessToken> {
     throw new Error(`Auth0 token request failed: ${res.status} ${error}`);
   }
 
-  return (await res.json()) as MybankApiAccessToken;
+  return (await res.json()) as DocfloApiAccessToken;
 }
 
 /**
- * Ensure a valid API 1 access token is available, refreshing if needed.
+ * Ensure a valid Docflo API access token is available, refreshing if needed.
  */
 async function ensureAccessToken(): Promise<void> {
-  const current = getMybankApi1AccessToken();
-  const isValid = await validateAPI1Token(current);
+  const current = getDocfloApiAccessToken();
+  const isValid = await validateDocfloApiToken(current);
 
   if (!isValid) {
-    const result = await getAccessTokenAPI1();
-    setMybankApi1AccessToken(result.access_token);
-    console.log(
-      "New Access Token from Auth0 for MyBank-API-1:",
-      result.access_token,
-    );
+    const result = await getAccessTokenDocfloApi();
+    setDocfloApiAccessToken(result.access_token);
+    console.log("New Access Token from Auth0 for Docflo API:", result.access_token);
   } else {
-    console.log("Existing Access Token from Auth0 for MyBank-API-1:", current);
+    console.log("Existing Access Token from Auth0 for Docflo API:", current);
   }
 }
 
@@ -63,11 +61,11 @@ async function ensureAccessToken(): Promise<void> {
 export async function getRoles(): Promise<unknown> {
   await ensureAccessToken();
 
-  const res = await fetch(MYBANK_API_1_URL + "/user/roles", {
+  const res = await fetch(DOCFLO_API_URL + "/user/roles", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + getMybankApi1AccessToken(),
+      Authorization: "Bearer " + getDocfloApiAccessToken(),
     },
   });
 
@@ -80,16 +78,16 @@ export async function getRoles(): Promise<unknown> {
 }
 
 /**
- * Fetch organization (tenant) details from Docflo.
+ * Fetch organization (tenant) details from the Docflo API.
  */
 export async function getOrganization(): Promise<unknown> {
   await ensureAccessToken();
 
-  const res = await fetch(MYBANK_API_1_URL + "/organization", {
+  const res = await fetch(DOCFLO_API_URL + "/organization", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + getMybankApi1AccessToken(),
+      Authorization: "Bearer " + getDocfloApiAccessToken(),
     },
   });
 

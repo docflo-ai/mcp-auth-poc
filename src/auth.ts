@@ -1,8 +1,8 @@
 import {
   AUTH0_AUDIENCE,
   AUTH0_DOMAIN,
-  MYBANK_API_1_AUDIENCE,
-  MYBANK_API_1_AUTH0_DOMAIN,
+  DOCFLO_API_AUDIENCE,
+  DOCFLO_API_AUTH0_DOMAIN,
   setMcpAccessToken,
 } from "./config.js";
 import {
@@ -261,16 +261,16 @@ export async function getUserInfo(accessToken: string): Promise<Auth0UserInfo> {
   return res.json() as Promise<Auth0UserInfo>;
 }
 
-const MYBANK_API_1_JWKS = createRemoteJWKSet(
-  new URL(`https://${MYBANK_API_1_AUTH0_DOMAIN}/.well-known/jwks.json`),
+const DOCFLO_API_JWKS = createRemoteJWKSet(
+  new URL(`https://${DOCFLO_API_AUTH0_DOMAIN}/.well-known/jwks.json`),
 );
 
-export async function validateAPI1Token(token: string): Promise<boolean> {
-  console.log("Validating MyBank API 1 token with Auth0");
+export async function validateDocfloApiToken(token: string): Promise<boolean> {
+  console.log("Validating Docflo API token with Auth0", token);
   try {
-    await jwtVerify(token, MYBANK_API_1_JWKS, {
-      audience: MYBANK_API_1_AUDIENCE,
-      issuer: `https://${MYBANK_API_1_AUTH0_DOMAIN}/`,
+    await jwtVerify(token, DOCFLO_API_JWKS, {
+      audience: DOCFLO_API_AUDIENCE,
+      issuer: `https://${DOCFLO_API_AUTH0_DOMAIN}/`,
     });
     return true;
   } catch (err) {
