@@ -25,14 +25,6 @@ export function getMybankApi1AccessToken(): string {
 export const AUTH0_DOMAIN = "docflo-lab.eu.auth0.com";
 export const AUTH0_AUDIENCE = "https://docflo-auth-api";
 
-export const MYBANK_API_1_AUTH0_DOMAIN = "docflo-lab.eu.auth0.com";
-export const MYBANK_API_1_CLIENT_ID = "zau8VYau9dnZahoSahTRfl2waaadTVnZ";
-export const MYBANK_API_1_CLIENT_SECRET =
-  "rOQwmkHZgVriiv_rfK7BYUSa6rfmimlNy7oKQoA62mP6y13pqfWRZql-fsze8Go8";
-export const MYBANK_API_1_AUDIENCE = "https://docflo-auth-api";
-export const MYBANK_API_1_SCOPE = "read:balance";
-export const MYBANK_API_1_URL = "https://api.lab.docflo.ai/auth";
-
 /* Types */
 export interface MybankApiAccessToken {
   access_token: string;
